@@ -37,14 +37,14 @@ if (process.argv[2]) {
 // 🖥️  Initialize RPC API
 // ═══════════════════════════════════════
 const app = createRPC(blockchain, p2p);
-app.listen(genesis.rpcPort, () => {
+const PORT = process.env.PORT || genesis.rpcPort;
+app.listen(PORT, () => {
   console.log('');
   console.log('═══════════════════════════════════════════');
-  console.log(`✅ VLIL TRON Node is LIVE!`);
-  console.log(`🖥️  RPC API  → http://localhost:${genesis.rpcPort}`);
+  console.log(`✅ VLIL Node is LIVE!`);
+  console.log(`🖥️  RPC API  → http://localhost:${PORT}`);
   console.log(`🌐 P2P Net  → ws://localhost:${genesis.p2pPort}`);
-  console.log(`📊 Status   → http://localhost:${genesis.rpcPort}/status`);
-  console.log(`⛏️  Mine     → POST http://localhost:${genesis.rpcPort}/mine`);
+  console.log(`📊 Status   → http://localhost:${PORT}/status`);
   console.log('═══════════════════════════════════════════');
   console.log('');
 });
