@@ -259,6 +259,10 @@ function createRPC(blockchain, p2p) {
       res.status(400).json({ error: err.message });
     }
   });
+  // CMC Supply API
+app.get('/supply/total', (req, res) => res.send('999999500'));
+app.get('/supply/circulating', (req, res) => res.send('999999500'));
+app.get('/supply/max', (req, res) => res.send('1000000000'));
   return app;
 }
 
