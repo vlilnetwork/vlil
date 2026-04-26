@@ -1,0 +1,14 @@
+{
+  "name": "VLIL",
+  "symbol": "VLIL",
+  "chainId": 1999,
+  "totalSupply": 1000000000,
+  "miningReward": 50,
+  "difficulty": 4,
+  "blockTime": 10,
+  "founder": "VLI",
+  "createdAt": "2026-04-11",
+  "p2pPort": 6001,
+  "rpcPort": 3000,
+  "message": "VLIL Blockchain - Genesis Block"
+}
