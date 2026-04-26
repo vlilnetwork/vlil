@@ -1,6 +1,7 @@
 const Block = require('./block');
 const Transaction = require('./transaction');
 const { ContractEngine } = require('./contract');
+const { VRC20Registry } = require('./vrc20');
 
 class Blockchain {
   constructor() {
@@ -11,6 +12,7 @@ class Blockchain {
     this.totalSupply = 1_000_000_000;
     this.balances = {};
     this.contractEngine = new ContractEngine();
+    this.vrc20Registry = new VRC20Registry();
     this.rebuildBalances();
   }
 

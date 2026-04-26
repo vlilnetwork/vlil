@@ -183,7 +183,82 @@ function createRPC(blockchain, p2p) {
     p2p.connectToPeer(address);
     res.json({ message: `🔗 Connecting to ${address}` });
   });
+// ═══════════════════════════════════════
+  // 🪙 VRC-20 TOKEN ROUTES
+  // ═══════════════════════════════════════
 
+  // Create new token
+  app.post('/token/create', (req, res) => {
+    try {
+      const { name, symbol, totalSupply, owner } = req.body;
+      if (!name || !symbol || !totalSupply || !owner) {
+        return res.status(400).json({ error: '❌ Missing name, symbol, totalSupply or owner' });
+      }
+      const token = blockchain.vrc20Registry.create(name, symbol, totalSupply, owner);
+      res.json({ message: '✅ Token created!', token: token.getInfo() });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Get all tokens
+  app.get('/tokens', (req, res) => {
+    res.json(blockchain.vrc20Registry.getAllTokens());
+  });
+
+  // Get token info
+  app.get('/token/:address', (req, res) => {
+    const token = blockchain.vrc20Registry.getToken(req.params.address);
+    if (!token) return res.status(404).json({ error: '❌ Token not found' });
+    res.json(token.getInfo());
+  });
+
+  // Get token balance
+  app.get('/token/:address/balance/:wallet', (req, res) => {
+    const token = blockchain.vrc20Registry.getToken(req.params.address);
+    if (!token) return res.status(404).json({ error: '❌ Token not found' });
+    const balance = token.balanceOf(req.params.wallet);
+    res.json({ balance, symbol: token.symbol, wallet: req.params.wallet });
+  });
+
+  // Transfer token
+  app.post('/token/:address/transfer', (req, res) => {
+    try {
+      const token = blockchain.vrc20Registry.getToken(req.params.address);
+      if (!token) return res.status(404).json({ error: '❌ Token not found' });
+      const { from, to, amount } = req.body;
+      const result = token.transfer(from, to, amount);
+      res.json(result);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // Mint token
+  app.post('/token/:address/mint', (req, res) => {
+    try {
+      const token = blockchain.vrc20Registry.getToken(req.params.address);
+      if (!token) return res.status(404).json({ error: '❌ Token not found' });
+      const { caller, to, amount } = req.body;
+      const result = token.mint(caller, to, amount);
+      res.json(result);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // Burn token
+  app.post('/token/:address/burn', (req, res) => {
+    try {
+      const token = blockchain.vrc20Registry.getToken(req.params.address);
+      if (!token) return res.status(404).json({ error: '❌ Token not found' });
+      const { from, amount } = req.body;
+      const result = token.burn(from, amount);
+      res.json(result);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
   return app;
 }
 
