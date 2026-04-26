@@ -125,6 +125,59 @@ function createRPC(blockchain, p2p) {
     });
   });
 
+  // ═══════════════════════════════════════
+  // 📜 SMART CONTRACT ROUTES
+  // ═══════════════════════════════════════
+
+  // Deploy contract
+  app.post('/contract/deploy', (req, res) => {
+    try {
+      const { code, owner, value } = req.body;
+      if (!code || !owner) {
+        return res.status(400).json({ error: '❌ Missing code or owner' });
+      }
+      const contract = blockchain.contractEngine.deploy(code, owner, value || 0);
+      res.json({
+        message: '✅ Contract deployed!',
+        address: contract.address,
+        owner: contract.owner,
+        balance: contract.balance,
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Call contract
+  app.post('/contract/call', (req, res) => {
+    try {
+      const { address, method, args, sender, value } = req.body;
+      const result = blockchain.contractEngine.call(
+        address, method, args || [], sender, value || 0
+      );
+      res.json(result);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // Get contract
+  app.get('/contract/:address', (req, res) => {
+    const contract = blockchain.contractEngine.getContract(req.params.address);
+    if (!contract) return res.status(404).json({ error: '❌ Contract not found' });
+    res.json({
+      address: contract.address,
+      owner: contract.owner,
+      balance: contract.balance,
+      storage: contract.storage,
+      createdAt: contract.createdAt,
+    });
+  });
+
+  // Get all contracts
+  app.get('/contracts', (req, res) => {
+    res.json(blockchain.contractEngine.getAllContracts());
+  });
   app.post('/peer/connect', (req, res) => {
     const { address } = req.body;
     p2p.connectToPeer(address);

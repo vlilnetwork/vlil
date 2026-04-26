@@ -1,5 +1,6 @@
 const Block = require('./block');
 const Transaction = require('./transaction');
+const { ContractEngine } = require('./contract');
 
 class Blockchain {
   constructor() {
@@ -9,7 +10,8 @@ class Blockchain {
     this.miningReward = 50;
     this.totalSupply = 1_000_000_000;
     this.balances = {};
-    this.rebuildBalances(); // ← เพิ่มบรรทัดนี้
+    this.contractEngine = new ContractEngine();
+    this.rebuildBalances();
   }
 
   createGenesisBlock() {
@@ -19,17 +21,12 @@ class Blockchain {
     return genesis;
   }
 
-  // ✅ คำนวณ balance ใหม่จาก chain ทั้งหมด
   rebuildBalances() {
     this.balances = {};
     for (const block of this.chain) {
       for (const tx of block.transactions) {
-        if (tx.from) {
-          this.balances[tx.from] = (this.balances[tx.from] || 0) - tx.amount;
-        }
-        if (tx.to) {
-          this.balances[tx.to] = (this.balances[tx.to] || 0) + tx.amount;
-        }
+        if (tx.from) this.balances[tx.from] = (this.balances[tx.from] || 0) - tx.amount;
+        if (tx.to) this.balances[tx.to] = (this.balances[tx.to] || 0) + tx.amount;
       }
     }
   }
@@ -81,7 +78,6 @@ class Blockchain {
     this.chain.push(block);
     console.log(`✅ Block #${block.index} mined! Hash: ${block.hash}`);
 
-    // Update balances
     this.pendingTransactions.forEach(tx => {
       if (tx.from) this.balances[tx.from] = (this.balances[tx.from] || 0) - tx.amount;
       if (tx.to) this.balances[tx.to] = (this.balances[tx.to] || 0) + tx.amount;
