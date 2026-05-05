@@ -1,3 +1,4 @@
+const cors = require('cors');
 const express = require('express');
 const { MESSAGE_TYPES } = require('../network/p2p');
 const Transaction = require('../blockchain/transaction');
@@ -5,7 +6,11 @@ const Wallet = require('../wallet/wallet');
 
 function createRPC(blockchain, p2p) {
   const app = express();
-  app.use(express.json());
+  app.use(express.json());app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type']
+  }));
 
   // ═══════════════════════════════════════
   // 🏠 ROOT ROUTE
