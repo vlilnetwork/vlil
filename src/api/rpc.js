@@ -268,6 +268,69 @@ function createRPC(blockchain, p2p) {
 app.get('/supply/total', (req, res) => res.send('999999500'));
 app.get('/supply/circulating', (req, res) => res.send('999999500'));
 app.get('/supply/max', (req, res) => res.send('1000000000'));
+// ═══════════════════════════════════════
+  // 🖼️  VRC-721 NFT ROUTES
+  // ═══════════════════════════════════════
+
+  // Create NFT Collection
+  app.post('/nft/create', (req, res) => {
+    try {
+      const { name, symbol, owner } = req.body;
+      if (!name || !symbol || !owner) {
+        return res.status(400).json({ error: '❌ Missing name, symbol or owner' });
+      }
+      const collection = blockchain.vrc721Registry.create(name, symbol, owner);
+      res.json({ message: '✅ NFT Collection created!', collection: collection.getInfo() });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Mint NFT
+  app.post('/nft/:address/mint', (req, res) => {
+    try {
+      const collection = blockchain.vrc721Registry.getCollection(req.params.address);
+      if (!collection) return res.status(404).json({ error: '❌ Collection not found' });
+      const { to, name, description, imageURI } = req.body;
+      const token = collection.mint(to, name, description, imageURI || '');
+      res.json({ message: '✅ NFT Minted!', token });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // Transfer NFT
+  app.post('/nft/:address/transfer', (req, res) => {
+    try {
+      const collection = blockchain.vrc721Registry.getCollection(req.params.address);
+      if (!collection) return res.status(404).json({ error: '❌ Collection not found' });
+      const { from, to, tokenId } = req.body;
+      const token = collection.transfer(from, to, tokenId);
+      res.json({ message: '✅ NFT Transferred!', token });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // Get all NFTs by owner
+  app.get('/nft/:address/owner/:wallet', (req, res) => {
+    const collection = blockchain.vrc721Registry.getCollection(req.params.address);
+    if (!collection) return res.status(404).json({ error: '❌ Collection not found' });
+    const tokens = collection.getTokensByOwner(req.params.wallet);
+    res.json({ tokens, count: tokens.length });
+  });
+
+  // Get all collections
+  app.get('/nft/collections', (req, res) => {
+    res.json(blockchain.vrc721Registry.getAllCollections());
+  });
+
+  // Get collection info
+  app.get('/nft/:address', (req, res) => {
+    const collection = blockchain.vrc721Registry.getCollection(req.params.address);
+    if (!collection) return res.status(404).json({ error: '❌ Collection not found' });
+    res.json(collection.getInfo());
+  });
   return app;
 }
 

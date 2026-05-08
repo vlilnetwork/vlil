@@ -1,3 +1,4 @@
+const { VRC721Registry } = require('./vrc721');
 const Block = require('./block');
 const Transaction = require('./transaction');
 const { ContractEngine } = require('./contract');
@@ -14,6 +15,7 @@ class Blockchain {
     this.contractEngine = new ContractEngine();
     this.vrc20Registry = new VRC20Registry();
     this.rebuildBalances();
+    this.vrc721Registry = new VRC721Registry();
   }
 
   createGenesisBlock() {
