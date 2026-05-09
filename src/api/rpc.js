@@ -391,6 +391,61 @@ app.get('/supply/max', (req, res) => res.send('1000000000'));
     if (!pool) return res.status(404).json({ error: '❌ Pool not found' });
     res.json(pool.getInfo());
   });
+  // ═══════════════════════════════════════
+  // 🥩 STAKING ROUTES
+  // ═══════════════════════════════════════
+
+  // Stake VLIL
+  app.post('/stake', (req, res) => {
+    try {
+      const { address, amount } = req.body;
+      if (!address || !amount) return res.status(400).json({ error: '❌ Missing address or amount' });
+      const balance = blockchain.getBalanceOf(address);
+      if (balance < amount) return res.status(400).json({ error: `❌ Insufficient balance. Have: ${balance} VLIL` });
+      blockchain.balances[address] -= parseFloat(amount);
+      const result = blockchain.staking.stake(address, parseFloat(amount));
+      res.json({ message: '✅ Staked successfully!', stake: result });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // Unstake VLIL
+  app.post('/unstake', (req, res) => {
+    try {
+      const { address, amount } = req.body;
+      if (!address || !amount) return res.status(400).json({ error: '❌ Missing address or amount' });
+      const result = blockchain.staking.unstake(address, parseFloat(amount));
+      blockchain.balances[address] = (blockchain.balances[address] || 0) + parseFloat(amount) + result.rewards;
+      res.json({ message: '✅ Unstaked successfully!', result });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // Claim Rewards
+  app.post('/stake/claim', (req, res) => {
+    try {
+      const { address } = req.body;
+      if (!address) return res.status(400).json({ error: '❌ Missing address' });
+      const result = blockchain.staking.claimRewards(address);
+      blockchain.balances[address] = (blockchain.balances[address] || 0) + result.claimed;
+      res.json({ message: '✅ Rewards claimed!', result });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // Get Stake Info
+  app.get('/stake/:address', (req, res) => {
+    const info = blockchain.staking.getStakeInfo(req.params.address);
+    res.json(info);
+  });
+
+  // Get Pool Info
+  app.get('/stake/pool/info', (req, res) => {
+    res.json(blockchain.staking.getPoolInfo());
+  });
   return app;
 }
 

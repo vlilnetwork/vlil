@@ -1,3 +1,4 @@
+const { StakingPool } = require('./staking');
 const { DEX } = require('./dex');
 const { VRC721Registry } = require('./vrc721');
 const Block = require('./block');
@@ -18,6 +19,7 @@ class Blockchain {
     this.rebuildBalances();
     this.vrc721Registry = new VRC721Registry();
     this.dex = new DEX();
+    this.staking = new StakingPool(0.1); // 10% APY
   }
 
   createGenesisBlock() {
