@@ -331,6 +331,66 @@ app.get('/supply/max', (req, res) => res.send('1000000000'));
     if (!collection) return res.status(404).json({ error: '❌ Collection not found' });
     res.json(collection.getInfo());
   });
+  // ═══════════════════════════════════════
+  // 🏦 DEX ROUTES
+  // ═══════════════════════════════════════
+
+  app.post('/dex/pool/create', (req, res) => {
+    try {
+      const { tokenA, tokenB } = req.body;
+      if (!tokenA || !tokenB) return res.status(400).json({ error: '❌ Missing tokenA or tokenB' });
+      const pool = blockchain.dex.createPool(tokenA, tokenB);
+      res.json({ message: '✅ Pool created!', pool: pool.getInfo() });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/dex/pool/:address/add', (req, res) => {
+    try {
+      const pool = blockchain.dex.getPool(req.params.address);
+      if (!pool) return res.status(404).json({ error: '❌ Pool not found' });
+      const { provider, amountA, amountB } = req.body;
+      const result = pool.addLiquidity(provider, parseFloat(amountA), parseFloat(amountB));
+      res.json({ message: '✅ Liquidity added!', result, pool: pool.getInfo() });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.post('/dex/pool/:address/swapAB', (req, res) => {
+    try {
+      const pool = blockchain.dex.getPool(req.params.address);
+      if (!pool) return res.status(404).json({ error: '❌ Pool not found' });
+      const { amountIn } = req.body;
+      const result = pool.swapAforB(parseFloat(amountIn));
+      res.json({ message: '✅ Swap successful!', result, pool: pool.getInfo() });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.post('/dex/pool/:address/swapBA', (req, res) => {
+    try {
+      const pool = blockchain.dex.getPool(req.params.address);
+      if (!pool) return res.status(404).json({ error: '❌ Pool not found' });
+      const { amountIn } = req.body;
+      const result = pool.swapBforA(parseFloat(amountIn));
+      res.json({ message: '✅ Swap successful!', result, pool: pool.getInfo() });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.get('/dex/pools', (req, res) => {
+    res.json(blockchain.dex.getAllPools());
+  });
+
+  app.get('/dex/pool/:address', (req, res) => {
+    const pool = blockchain.dex.getPool(req.params.address);
+    if (!pool) return res.status(404).json({ error: '❌ Pool not found' });
+    res.json(pool.getInfo());
+  });
   return app;
 }
 
